@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezervace vybavení</title>
+    <style>
+        :root {
+            --primary: #1d4ed8;
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --border-color: #cbd5e1;
+        }
+        body { font-family: system-ui, sans-serif; background: var(--bg-gradient); padding: 40px 20px; color: var(--text-main); margin: 0; min-height: 100vh; box-sizing: border-box; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1, h2 { margin-top: 0; }
+        
+        .field-label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #1e293b; }
+        input, select { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; background: white; }
+        button { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; background: var(--primary); color: white; width: 100%; }
+        
+        .selection-preview-wrapper { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; }
+        .selection-preview-wrapper select { margin-bottom: 0; flex-grow: 1; }
+        .live-preview-box { width: 120px; height: 80px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .live-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div style="text-align: right; margin-bottom: 20px;">
+        <a href="admin.html" style="color: white; text-decoration: none; font-weight: bold;">Přejít do administrace →</a>
+    </div>
+
+    <div class="section-box">
+        <h2>Vytvořit rezervaci</h2>
+        <form id="reservationForm" onsubmit="submitReservation(event)">
+            
+            <span class="field-label">Vyberte položku z katalogu</span>
+            <div class="selection-preview-wrapper">
+                <select id="selectedItem" required onchange="updatePreviewImage()">
+                    <option value="">-- Vyberte vybavení --</option>
+                </select>
+                <div class="live-preview-box" id="previewContainer">
+                    <span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <span class="field-label">Datum od</span>
+                    <input type="date" id="dateFrom" required>
+                </div>
+                <div>
+                    <span class="field-label">Datum do</span>
+                    <input type="date" id="dateTo" required>
+                </div>
+            </div>
+
+            <span class="field-label">Vaše jméno / Název firmy</span>
+            <input type="text" id="clientName" placeholder="např. Jan Novák" required>
+
+            <span class="field-label">Telefonní číslo</span>
+            <input type="tel" id="clientPhone" placeholder="např. +420 123 456 789" required>
+
+            <span class="field-label">E-mailová adresa</span>
+            <input type="email" id="clientEmail" placeholder="např. novak@email.cz" required>
+
+            <button type="submit">Odeslat závaznou rezervaci</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentCatalog = [];
+
+    function loadPublicData() {
+        const selectDropdown = document.getElementById('selectedItem');
+        currentCatalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
+
+        // Vyčištění a nastavení základní možnosti
+        selectDropdown.innerHTML = '';
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = '-- Vyberte vybavení --';
+        selectDropdown.appendChild(defaultOpt);
+
+        if (currentCatalog.length === 0) {
+            defaultOpt.textContent = '-- Žádné položky v katalogu --';
+            return;
+        }
+
+        // Přímé vkládání položek do roletky
+        currentCatalog.forEach((item, index) => {
+            const itemName = item.name || item.itemName || item.nazev || ('Položka ' + (index + 1));
+            const itemPrice = item.price || item.cena || '';
+            
+            const opt = document.createElement('option');
+            opt.value = index;
+            opt.textContent = itemName + (itemPrice ? ' (' + itemPrice + ')' : '');
+            selectDropdown.appendChild(opt);
+        });
+    }
+
+    function updatePreviewImage() {
+        const selectedIndex = document.getElementById('selectedItem').value;
+        const previewContainer = document.getElementById('previewContainer');
+
+        if (selectedIndex === "") {
+            previewContainer.innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>';
+            return;
+        }
+
+        const chosenItem = currentCatalog[selectedIndex];
+        const img = chosenItem ? (chosenItem.image || chosenItem.fotka || '') : '';
+
+        if (img) {
+            previewContainer.innerHTML = `<img src="${img}" alt="Náhled">`;
+        } else {
+            previewContainer.innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center;">Bez foto</span>';
+        }
+    }
+
+    function submitReservation(event) {
+        event.preventDefault();
+
+        const selectedIndex = document.getElementById('selectedItem').value;
+        if (selectedIndex === "") {
+            alert("Vyberte prosím položku k rezervaci.");
+            return;
+        }
+
+        const chosenItem = currentCatalog[selectedIndex];
+
+        const newOrder = {
+            item: chosenItem.name || chosenItem.nazev || 'Předmět',
+            price: chosenItem.price || chosenItem.cena || '',
+            deposit: chosenItem.deposit || chosenItem.zaloha || '',
+            image: chosenItem.image || chosenItem.fotka || '',
+            dateFrom: document.getElementById('dateFrom').value,
+            dateTo: document.getElementById('dateTo').value,
+            name: document.getElementById('clientName').value,
+            phone: document.getElementById('clientPhone').value,
+            email: document.getElementById('clientEmail').value,
+            timestamp: new Date().toLocaleString()
+        };
+
+        let orders = JSON.parse(localStorage.getItem('rental_orders')) || [];
+        orders.push(newOrder);
+        localStorage.setItem('rental_orders', JSON.stringify(orders));
+
+        alert("Rezervace byla úspěšně odeslána do administrace!");
+        document.getElementById('reservationForm').reset();
+        document.getElementById('previewContainer').innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>';
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPublicData);
+</script>
+</body>
+</html>
