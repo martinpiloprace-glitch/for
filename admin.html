@@ -20,11 +20,16 @@
         .top-nav a { color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 14px; }
         .top-nav a:hover { color: white; }
         
+        /* Roletka v horní liště */
+        .section-select { background: #1e293b; color: #f8fafc; border: 1px solid #334155; padding: 10px 15px; border-radius: 8px; font-size: 15px; font-weight: 600; outline: none; cursor: pointer; }
+
         .btn-group { display: flex; gap: 10px; }
         .btn-danger-custom { background: var(--danger); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
         .btn-danger-custom:hover { opacity: 0.9; }
 
-        .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); display: none; }
+        .section-box.active { display: block; }
+        
         h1, h2 { margin-top: 0; }
 
         /* Karta rezervace */
@@ -75,17 +80,24 @@
 
 <div class="container">
     
-    <!-- Horní lišta -->
+    <!-- Horní lišta s odkazem, přepínací roletkou a tlačítky mazání -->
     <div class="top-nav">
-        <a href="index.html">← Zpět na rezervační formulář</a>
+        <a href="index.html">← Zpět na web</a>
+        
+        <select id="sectionSelect" class="section-select" onchange="switchSection(this.value)">
+            <option value="shop">📋 Údaje o vaší půjčovně</option>
+            <option value="orders">📥 Přijaté rezervace</option>
+            <option value="catalog">⚙️ Správa katalogu vybavení</option>
+        </select>
+
         <div class="btn-group">
             <button class="btn-danger-custom" onclick="clearCatalog()">Vyčistit katalog</button>
             <button class="btn-danger-custom" onclick="clearOrders()">Smazat rezervace</button>
         </div>
     </div>
 
-    <!-- NASTAVENÍ PROVOZOVNY -->
-    <div class="section-box">
+    <!-- 1. NASTAVENÍ PROVOZOVNY -->
+    <div id="section-shop" class="section-box active">
         <h2>Údaje o vaší půjčovně</h2>
         <p style="font-size: 14px; color: #64748b; margin-top: 0; margin-bottom: 20px;">Tyto údaje se automaticky uloží do vašeho prohlížeče a budou se propisovat do každé tištěné smlouvy.</p>
         <div class="form-grid">
@@ -102,16 +114,16 @@
         <input type="text" id="shopAddress" placeholder="např. Hlavní 123, 602 00 Brno" oninput="saveShopInfo()">
     </div>
 
-    <!-- SEZNAM REZERVACÍ -->
-    <div class="section-box">
+    <!-- 2. SEZNAM REZERVACÍ -->
+    <div id="section-orders" class="section-box">
         <h2>Přijaté rezervace</h2>
         <div id="ordersContainer">
             <p style="color: #64748b;">Zatím nejsou evidovány žádné rezervace.</p>
         </div>
     </div>
 
-    <!-- SPRÁVA KATALOGU -->
-    <div class="section-box">
+    <!-- 3. SPRÁVA KATALOGU -->
+    <div id="section-catalog" class="section-box">
         <h2>Správa katalogu vybavení</h2>
         <form id="catalogForm" onsubmit="saveCatalogItem(event)">
             <span class="field-label">Název položky</span>
@@ -158,6 +170,14 @@
         loadOrders();
         loadCatalog();
     });
+
+    // Funkce pro přepínání sekcí pomocí roletky
+    function switchSection(sectionId) {
+        document.querySelectorAll('.section-box').forEach(box => {
+            box.classList.remove('active');
+        });
+        document.getElementById('section-' + sectionId).classList.add('active');
+    }
 
     function saveShopInfo() {
         const shopInfo = {
