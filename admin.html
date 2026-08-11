@@ -7,258 +7,398 @@
     <style>
         :root {
             --primary: #1d4ed8;
+            --danger: #dc2626;
             --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             --card-bg: #ffffff;
             --text-main: #0f172a;
             --border-color: #cbd5e1;
         }
         body { font-family: system-ui, sans-serif; background: var(--bg-gradient); padding: 40px 20px; color: var(--text-main); margin: 0; min-height: 100vh; box-sizing: border-box; }
-        .container { max-width: 1000px; margin: 0 auto; }
-        .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { margin-top: 0; }
+        .container { max-width: 900px; margin: 0 auto; }
         
+        .top-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 15px; }
+        .top-nav a { color: #94a3b8; text-decoration: none; font-weight: 600; font-size: 14px; }
+        .top-nav a:hover { color: white; }
+        
+        .btn-group { display: flex; gap: 10px; }
+        .btn-danger-custom { background: var(--danger); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+        .btn-danger-custom:hover { opacity: 0.9; }
+
+        .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1, h2 { margin-top: 0; }
+
+        /* Karta rezervace */
+        .reservation-card { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: center; }
+        @media (max-width: 768px) { .reservation-card { grid-template-columns: 1fr; } }
+        
+        .res-header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e2e8f0; padding-bottom: 10px; margin-bottom: 5px; }
+        .res-title { font-weight: 700; font-size: 18px; color: var(--primary); margin: 0; }
+        .res-term { background: #dbeafe; color: #1e40af; padding: 4px 10px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        
+        .res-col p { margin: 6px 0; font-size: 14px; color: #334155; }
+        .res-col strong { color: #0f172a; }
+        
+        .item-box { display: flex; align-items: center; gap: 12px; background: white; padding: 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+        .item-box img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; background: #e2e8f0; }
+        
+        .action-buttons { display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+        .btn-resolve { background: #10b981; color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; text-align: center; }
+        .btn-resolve:hover { opacity: 0.9; }
+        .btn-print { background: var(--primary); color: white; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; text-align: center; }
+        .btn-print:hover { opacity: 0.9; }
+
+        /* Správa katalogu formulář */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
         .field-label { display: block; font-weight: 700; font-size: 14px; margin-bottom: 6px; color: #1e293b; }
-        input, textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; }
-        button { padding: 12px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 700; background: var(--primary); color: white; width: 100%; }
-        .list-item { display: flex; align-items: center; gap: 15px; padding: 15px; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 15px; background: #f8fafc; }
-        .list-item img { width: 100px; height: 70px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-color); }
+        input, textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 8px; box-sizing: border-box; margin-bottom: 15px; font-family: system-ui, sans-serif; background: white; }
+        textarea { resize: vertical; height: 90px; }
+        button.btn-primary { background: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 10px; cursor: pointer; font-weight: 700; width: 100%; }
+
+        /* Katalogové položky pod sebou */
+        #catalogList { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .catalog-list-item { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 15px 20px; border-radius: 10px; border: 1px solid #e2e8f0; }
+        .catalog-list-item img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; margin-right: 15px; background: #e2e8f0; }
+        .catalog-item-info { display: flex; align-items: center; overflow: hidden; }
+
+        /* Styly pro tisk */
+        @media print {
+            body { background: white; color: black; padding: 0; }
+            .top-nav, .section-box:not(#printSectionContainer), form, .btn-group, .action-buttons, button { display: none !important; }
+            .container { max-width: 100%; margin: 0; padding: 0; }
+            .print-protocol { display: block !important; background: white; border: none; padding: 10px; border-radius: 0; font-size: 12px; }
+        }
+        .print-protocol { display: none; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="text-align: right; margin-bottom: 20px;">
-        <a href="index.html" style="color: white; text-decoration: none; margin-right: 15px;">← Zpět na rezervační formulář</a>
-        <button type="button" onclick="clearAllCatalog()" style="background: #dc2626; padding: 8px 15px; font-size: 14px; width: auto; margin-right: 10px;">Vyčistit katalog</button>
-        <button type="button" onclick="clearAllOrders()" style="background: #dc2626; padding: 8px 15px; font-size: 14px; width: auto;">Smazat rezervace</button>
-    </div>
-
-    <div id="orders-container"></div>
-
-    <div class="section-box">
-        <h1>Správa katalogu</h1>
-        <div>
-            <span class="field-label">Název položky</span>
-            <input type="text" id="itemName" placeholder="např. Horské kolo X1">
-
-            <span class="field-label">Cena za den</span>
-            <input type="text" id="itemPrice" placeholder="např. 500 Kč">
-
-            <span class="field-label">Záloha</span>
-            <input type="text" id="itemDeposit" placeholder="např. 2000 Kč">
-
-            <span class="field-label">Popis produktu</span>
-            <textarea id="itemDesc" placeholder="Stručný popis vlastností..."></textarea>
-
-            <span class="field-label">Obrázek produktu</span>
-            <input type="file" id="itemImage" accept="image/*">
-
-            <button type="button" onclick="addItem()">Přidat do katalogu</button>
+    
+    <!-- Horní lišta -->
+    <div class="top-nav">
+        <a href="index.html">← Zpět na rezervační formulář</a>
+        <div class="btn-group">
+            <button class="btn-danger-custom" onclick="clearCatalog()">Vyčistit katalog</button>
+            <button class="btn-danger-custom" onclick="clearOrders()">Smazat rezervace</button>
         </div>
-        
-        <h3 style="margin-top: 30px; font-size: 18px; color: #1e293b;">Karty v katalogu:</h3>
-        <div id="catalog-list"></div>
     </div>
+
+    <!-- NASTAVENÍ PROVOZOVNY -->
+    <div class="section-box">
+        <h2>Údaje o vaší půjčovně</h2>
+        <p style="font-size: 14px; color: #64748b; margin-top: 0; margin-bottom: 20px;">Tyto údaje se automaticky uloží do vašeho prohlížeče a budou se propisovat do každé tištěné smlouvy.</p>
+        <div class="form-grid">
+            <div>
+                <span class="field-label">Název / Firma</span>
+                <input type="text" id="shopName" placeholder="např. Jan Novák - Půjčovna" oninput="saveShopInfo()">
+            </div>
+            <div>
+                <span class="field-label">IČO / Zapsání v rejstříku</span>
+                <input type="text" id="shopIco" placeholder="např. IČO: 12345678" oninput="saveShopInfo()">
+            </div>
+        </div>
+        <span class="field-label">Adresa provozovny / Sídlo</span>
+        <input type="text" id="shopAddress" placeholder="např. Hlavní 123, 602 00 Brno" oninput="saveShopInfo()">
+    </div>
+
+    <!-- SEZNAM REZERVACÍ -->
+    <div class="section-box">
+        <h2>Přijaté rezervace</h2>
+        <div id="ordersContainer">
+            <p style="color: #64748b;">Zatím nejsou evidovány žádné rezervace.</p>
+        </div>
+    </div>
+
+    <!-- SPRÁVA KATALOGU -->
+    <div class="section-box">
+        <h2>Správa katalogu vybavení</h2>
+        <form id="catalogForm" onsubmit="saveCatalogItem(event)">
+            <span class="field-label">Název položky</span>
+            <input type="text" id="itemName" placeholder="např. Horské kolo X1" required>
+
+            <div class="form-grid">
+                <div>
+                    <span class="field-label">Cena za den</span>
+                    <input type="text" id="itemPrice" placeholder="např. 500 Kč" required>
+                </div>
+                <div>
+                    <span class="field-label">Vratná záloha</span>
+                    <input type="text" id="itemDeposit" placeholder="např. 2000 Kč">
+                </div>
+            </div>
+
+            <span class="field-label">Vybrat fotografii z počítače</span>
+            <input type="file" id="itemImageFile" accept="image/*" style="padding: 10px;">
+
+            <span class="field-label">Podrobný popis (podporuje odřádkování)</span>
+            <textarea id="itemDesc" placeholder="Napište parametry, stav, podmínky zapůjčení..."></textarea>
+
+            <button type="submit" class="btn-primary">Přidat položku do katalogu</button>
+        </form>
+
+        <h3 style="margin-top: 30px; margin-bottom: 15px; font-size: 16px;">Aktuální položky v katalogu:</h3>
+        <div id="catalogList">
+            <p style="color: #64748b; font-size: 14px;">Katalog je prázdný.</p>
+        </div>
+    </div>
+
 </div>
 
+<!-- Skrytý kontejner pro tisk smlouvy -->
+<div id="printSectionContainer"></div>
+
 <script>
-    // --- POMOCNÁ FUNKCE PRO ZMENŠENÍ OBRÁZKU ---
-    function resizeImage(file, maxWidth, maxHeight, callback) {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            const img = new Image();
-            img.onload = function () {
-                let width = img.width;
-                let height = img.height;
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedShop = JSON.parse(localStorage.getItem('rental_shop_info')) || {};
+        if (savedShop.name) document.getElementById('shopName').value = savedShop.name;
+        if (savedShop.address) document.getElementById('shopAddress').value = savedShop.address;
+        if (savedShop.ico) document.getElementById('shopIco').value = savedShop.ico;
 
-                if (width > height) {
-                    if (width > maxWidth) {
-                        height *= maxWidth / width;
-                        width = maxWidth;
-                    }
-                } else {
-                    if (height > maxHeight) {
-                        width *= maxHeight / height;
-                        height = maxHeight;
-                    }
-                }
+        loadOrders();
+        loadCatalog();
+    });
 
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                callback(canvas.toDataURL('image/jpeg', 0.7));
-            };
-            img.src = e.target.result;
+    function saveShopInfo() {
+        const shopInfo = {
+            name: document.getElementById('shopName').value,
+            address: document.getElementById('shopAddress').value,
+            ico: document.getElementById('shopIco').value
         };
-        reader.readAsDataURL(file);
+        localStorage.setItem('rental_shop_info', JSON.stringify(shopInfo));
     }
 
-    // --- REZERVACE ---
-    function renderOrders() {
-        const container = document.getElementById('orders-container');
-        let orders = JSON.parse(localStorage.getItem('rental_orders')) || [];
-        
+    function loadOrders() {
+        const container = document.getElementById('ordersContainer');
+        const orders = JSON.parse(localStorage.getItem('rental_orders')) || [];
+
         if (orders.length === 0) {
-            container.innerHTML = `
-                <div class="section-box">
-                    <h1>Administrace rezervací</h1>
-                    <p style="color: #64748b; margin: 0;">Zatím nejsou žádné rezervace.</p>
-                </div>`;
+            container.innerHTML = '<p style="color: #64748b;">Zatím nejsou evidovány žádné rezervace.</p>';
             return;
         }
-        
-        container.innerHTML = orders.map((order, index) => {
-            const itemName = order.item || order.itemName || order.nazev || 'Předmět';
-            const itemPrice = order.price || order.cena || '';
-            const itemImage = order.image || order.fotka || '';
 
-            return `
-            <div class="section-box">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                    <div>
-                        <h2 style="margin: 0; color: #1d4ed8;">Rezervace #${index + 1}</h2>
-                        <small style="color: #64748b;">Odesláno: ${order.timestamp || 'Neznámo'}</small>
-                    </div>
-                    <div style="background: #eff6ff; padding: 8px 15px; border-radius: 8px; font-weight: bold; color: #1d4ed8;">
-                        Termín: ${order.dateFrom} až ${order.dateTo}
-                    </div>
+        container.innerHTML = '';
+        orders.forEach((order, index) => {
+            const card = document.createElement('div');
+            card.className = 'reservation-card';
+
+            card.innerHTML = `
+                <div class="res-header">
+                    <h3 class="res-title">Rezervace #${index + 1}</h3>
+                    <span class="res-term">Termín: ${order.dateFrom} až ${order.dateTo}</span>
                 </div>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
-                    <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px;">
-                        <h3 style="margin-top: 0; font-size: 16px; color: #475569;">ÚDAJE ZÁKAZNÍKA</h3>
-                        <p><strong>Jméno:</strong> ${order.name}</p>
-                        <p><strong>Telefon:</strong> <a href="tel:${order.phone}">${order.phone}</a></p>
-                        <p><strong>E-mail:</strong> <a href="mailto:${order.email}">${order.email}</a></p>
-                    </div>
-                    
-                    <div style="border: 1px solid #e2e8f0; padding: 15px; border-radius: 12px;">
-                        <h3 style="margin-top: 0; font-size: 16px; color: #475569;">PŘEDMĚTY V REZERVACI</h3>
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            ${itemImage ? `<img src="${itemImage}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 4px;">` : ''}
-                            <div><strong>${itemName}</strong> ${itemPrice ? `(${itemPrice})` : ''}</div>
+                <div class="res-col">
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">Odesláno: ${order.timestamp || 'Neznámo'}</p>
+                    <p><strong>Zákazník:</strong> ${order.name}</p>
+                    <p><strong>Telefon:</strong> <a href="tel:${order.phone}" style="color: var(--primary);">${order.phone}</a></p>
+                    <p><strong>E-mail:</strong> <a href="mailto:${order.email}" style="color: var(--primary);">${order.email}</a></p>
+                </div>
+                <div class="res-col">
+                    <p style="font-weight: 700; margin-bottom: 6px; font-size: 14px;">Předmět v rezervaci:</p>
+                    <div class="item-box">
+                        <img src="${order.image || ''}" alt="Foto" onerror="this.style.display='none'">
+                        <div>
+                            <p style="margin: 0; font-weight: 600;">${order.item}</p>
+                            <p style="margin: 2px 0 0 0; font-size: 13px; color: #475569;">Cena: ${order.price || 'Neuvedena'}</p>
+                            <p style="margin: 2px 0 0 0; font-size: 13px; color: #475569;">Záloha: ${order.deposit || 'Neuvedena'}</p>
                         </div>
                     </div>
                 </div>
+                <div class="action-buttons">
+                    <button class="btn-print" onclick="printOrder(${index})">🖨️ Vytisknout smlouvu</button>
+                    <button class="btn-resolve" onclick="removeOrder(${index})">Vyřídit / Smazat</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
 
-                <div style="text-align: right;">
-                    <button type="button" onclick="deleteOrder(${index})" style="background: #fee2e2; color: #dc2626; padding: 8px 15px; font-size: 14px; width: auto;">Vyřídit / Smazat rezervaci</button>
+    function printOrder(index) {
+        const orders = JSON.parse(localStorage.getItem('rental_orders')) || [];
+        const order = orders[index];
+        if (!order) return;
+
+        const shop = JSON.parse(localStorage.getItem('rental_shop_info')) || {};
+
+        const printContainer = document.getElementById('printSectionContainer');
+        printContainer.innerHTML = `
+            <div class="print-protocol" style="font-family: 'Times New Roman', Times, serif; padding: 20px; color: #000; line-height: 1.6;">
+                <h2 style="text-align: center; margin-bottom: 5px; font-size: 18px; text-transform: uppercase;">SMLOUVA O ZÁPŮJČCE VĚCI A PŘEDÁVACÍ PROTOKOL</h2>
+                <p style="text-align: center; font-size: 11px; margin-bottom: 25px;">(uzavřená dle ustanovení § 2193 a násl. zákona č. 89/2012 Sb., občanský zákoník)</p>
+
+                <h3 style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 3px;">I. Smluvní strany</h3>
+                
+                <p style="margin: 6px 0;"><strong>1. Pronajímatel:</strong></p>
+                <table style="width: 100%; font-size: 13px; margin-bottom: 12px; border-collapse: collapse;">
+                    <tr><td style="width: 25%; padding: 4px 0;">Název / Jméno:</td><td style="border-bottom: 1px dotted #666; padding: 4px 0;"><strong>${shop.name || '..................................................................'}</strong></td></tr>
+                    <tr><td style="padding: 4px 0;">Sídlo / Provozovna:</td><td style="border-bottom: 1px dotted #666; padding: 4px 0;">${shop.address || '..................................................................'}</td></tr>
+                    <tr><td style="padding: 4px 0;">IČO / Kontakt:</td><td style="border-bottom: 1px dotted #666; padding: 4px 0;">${shop.ico || '..................................................................'}</td></tr>
+                </table>
+
+                <p style="margin: 6px 0;"><strong>2. Nájemce (Zákazník):</strong></p>
+                <table style="width: 100%; font-size: 13px; margin-bottom: 15px; border-collapse: collapse;">
+                    <tr><td style="width: 25%; padding: 5px 0;">Jméno a příjmení:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;"><strong>${order.name}</strong></td></tr>
+                    <tr><td style="padding: 5px 0;">Bydliště / Adresa:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">&nbsp;</td></tr>
+                    <tr><td style="padding: 5px 0;">&nbsp;</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">&nbsp;</td></tr>
+                    <tr><td style="padding: 5px 0;">Kontakt (tel./e-mail):</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">Tel: ${order.phone}, E-mail: ${order.email}</td></tr>
+                    <tr><td style="padding: 5px 0;">Datum narození / RČ:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">&nbsp;</td></tr>
+                    <tr><td style="padding: 5px 0;">Č. občanského průkazu:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">&nbsp;</td></tr>
+                </table>
+
+                <h3 style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 3px;">II. Předmět zapůjčení a termín</h3>
+                <table style="width: 100%; font-size: 13px; margin-bottom: 15px; border-collapse: collapse;">
+                    <tr><td style="width: 25%; padding: 5px 0;">Předmět:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;"><strong>${order.item}</strong></td></tr>
+                    <tr><td style="padding: 5px 0;">Doba zapůjčení:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;"><strong>od ${order.dateFrom} do ${order.dateTo}</strong></td></tr>
+                    <tr><td style="padding: 5px 0;">Nájemné (Cena):</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">${order.price || 'Neuvedena'}</td></tr>
+                    <tr><td style="padding: 5px 0;">Vratná záloha:</td><td style="border-bottom: 1px dotted #666; padding: 5px 0;">${order.deposit || 'Neuvedena'}</td></tr>
+                </table>
+
+                <h3 style="font-size: 14px; margin-bottom: 8px; border-bottom: 1px solid #000; padding-bottom: 3px;">III. Smluvní podmínky</h3>
+                <ol style="font-size: 11px; margin: 8px 0 20px 0; padding-left: 20px; text-align: justify; line-height: 1.5;">
+                    <li>Pronajímatel přenechává nájemci předmět zápůjčky v řádném, provozuschopném a nepoškozeném stavu, což nájemce svým podpisem níže výslovně potvrzuje.</li>
+                    <li>Nájemce je povinen užívat předmět zápůjčky řádně, v souladu s jeho určením, a chránit jej před poškozením, ztrátou či zcizením. Nájemce není oprávněn přenechat věc do užívání třetí osobě bez předchozího souhlasu pronajímatele.</li>
+                    <li>Nájemce se zavazuje vrátit předmět zápůjčky pronajímateli v den skončení doby zapůjčení ve stavu, v jakém jej převzal, s přihlédnutím k běžnému opotřebení. V případě prodlení s vrácením věci je pronajímatel oprávněn účtovat smluvní pokutu ve výši jednonásobku denního nájemného za každý započatý den prodlení.</li>
+                    <li>Složená vratná záloha slouží k zajištění případných pohledávek pronajímatele vůči nájemci (zejména na úhradu škody na předmětu zápůjčky, jeho ztráty či poplatků za prodlení). Záloha bude nájemci vrácena v plné výši při řádném a včasném vrácení věci bez závad.</li>
+                    <li>Vlastnické právo k předmětu zápůjčky po celou dobu trvání této smlouvy náleží výhradně pronajímateli.</li>
+                </ol>
+
+                <div style="margin-top: 40px; font-size: 12px; display: flex; justify-content: space-between;">
+                    <div style="width: 45%;">
+                        <p style="margin-bottom: 40px;">V ................................... dne ...................</p>
+                        <div style="border-top: 1px solid #000; padding-top: 5px; text-align: center;">
+                            Podpis pronajímatele (obsluhy)
+                        </div>
+                    </div>
+                    <div style="width: 45%;">
+                        <p style="margin-bottom: 40px;">V ................................... dne ...................</p>
+                        <div style="border-top: 1px solid #000; padding-top: 5px; text-align: center;">
+                            Podpis nájemce (zákazníka)
+                        </div>
+                    </div>
                 </div>
             </div>
         `;
-        }).join('');
+
+        window.print();
     }
 
-    function deleteOrder(index) {
+    function removeOrder(index) {
+        if (!confirm("Opravdu si tuto rezervaci přejete smazat?")) return;
         let orders = JSON.parse(localStorage.getItem('rental_orders')) || [];
         orders.splice(index, 1);
         localStorage.setItem('rental_orders', JSON.stringify(orders));
-        renderOrders();
+        loadOrders();
     }
 
-    function clearAllOrders() {
-        if (confirm("Opravdu chcete smazat všechny rezervace?")) {
-            localStorage.removeItem('rental_orders');
-            renderOrders();
-        }
+    function clearOrders() {
+        if (!confirm("Opravdu chcete smazat všechny rezervace?")) return;
+        localStorage.removeItem('rental_orders');
+        loadOrders();
     }
 
-    function clearAllCatalog() {
-        if (confirm("Opravdu chcete vymazat celý katalog?")) {
-            localStorage.removeItem('rental_catalog');
-            renderCatalog();
-        }
-    }
+    function saveCatalogItem(event) {
+        event.preventDefault();
 
-    // --- KATALOG ---
-    function addItem() {
-        const nameInput = document.getElementById('itemName');
-        const priceInput = document.getElementById('itemPrice');
-        const depositInput = document.getElementById('itemDeposit');
-        const descInput = document.getElementById('itemDesc');
-        const fileInput = document.getElementById('itemImage');
-        
-        const name = nameInput.value.trim();
-        const price = priceInput.value.trim();
-        const deposit = depositInput.value.trim();
-        const desc = descInput.value.trim();
-        
-        if (!name) {
-            alert("Vyplňte název položky!");
-            return;
-        }
+        const fileInput = document.getElementById('itemImageFile');
+        const file = fileInput.files[0];
 
-        function saveToStorage(imageUrl = '') {
-            const newItem = { 
-                name: name, 
-                price: price, 
-                deposit: deposit, 
-                desc: desc, 
-                image: imageUrl 
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.src = e.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 400;
+                    const MAX_HEIGHT = 400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height *= MAX_WIDTH / width;
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width *= MAX_HEIGHT / height;
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    const resizedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                    finishSavingItem(resizedDataUrl);
+                };
             };
-            
-            try {
-                let catalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
-                catalog.push(newItem);
-                localStorage.setItem('rental_catalog', JSON.stringify(catalog));
-                
-                nameInput.value = '';
-                priceInput.value = '';
-                depositInput.value = '';
-                descInput.value = '';
-                fileInput.value = '';
-
-                renderCatalog();
-            } catch (e) {
-                alert("Úložiště prohlížeče je plné. Smažte prosím některé staré položky v katalogu.");
-            }
-        }
-
-        if (fileInput.files && fileInput.files[0]) {
-            resizeImage(fileInput.files[0], 500, 500, function(compressedDataUrl) {
-                saveToStorage(compressedDataUrl);
-            });
+            reader.readAsDataURL(file);
         } else {
-            saveToStorage('');
+            finishSavingItem('');
         }
     }
 
-    function renderCatalog() {
-        const list = document.getElementById('catalog-list');
+    function finishSavingItem(imageData) {
+        const newItem = {
+            name: document.getElementById('itemName').value,
+            price: document.getElementById('itemPrice').value,
+            deposit: document.getElementById('itemDeposit').value,
+            image: imageData,
+            desc: document.getElementById('itemDesc').value
+        };
+
         let catalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
-        
+        catalog.push(newItem);
+        localStorage.setItem('rental_catalog', JSON.stringify(catalog));
+
+        document.getElementById('catalogForm').reset();
+        loadCatalog();
+        alert("Položka byla úspěšně přidána do katalogu i s fotografií!");
+    }
+
+    function loadCatalog() {
+        const listContainer = document.getElementById('catalogList');
+        const catalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
+
         if (catalog.length === 0) {
-            list.innerHTML = '<p style="color: #64748b; margin: 0;">Zatím nejsou v katalogu žádné položky.</p>';
+            listContainer.innerHTML = '<p style="color: #64748b; font-size: 14px;">Katalog je prázdný.</p>';
             return;
         }
 
-        list.innerHTML = catalog.map((item, index) => `
-            <div class="list-item">
-                ${item.image ? `<img src="${item.image}" alt="${item.name}">` : '<div style="width:100px; height:70px; background:#e2e8f0; border-radius:6px; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:12px;">Bez foto</div>'}
-                <div style="flex-grow: 1;">
-                    <strong style="font-size: 16px; color: #1e293b;">${item.name}</strong><br>
-                    <span style="color: #475569; font-size: 14px;"><strong>Cena:</strong> ${item.price} | <strong>Záloha:</strong> ${item.deposit}</span><br>
-                    <small style="color: #64748b;">${item.desc}</small>
+        listContainer.innerHTML = '';
+        catalog.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'catalog-list-item';
+            div.innerHTML = `
+                <div class="catalog-item-info">
+                    <img src="${item.image || ''}" alt="" onerror="this.style.display='none'">
+                    <div>
+                        <strong style="font-size: 15px;">${item.name}</strong><br>
+                        <span style="color: #64748b; font-size: 13px;">Cena: ${item.price} | Záloha: ${item.deposit || 'Žádná'}</span>
+                    </div>
                 </div>
-                <button type="button" onclick="deleteItem(${index})" style="background: #ef4444; padding: 8px 14px; font-size: 13px; width: auto;">Smazat</button>
-            </div>
-        `).join('');
+                <button onclick="deleteCatalogItem(${index})" style="background: #ef4444; color: white; border: none; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 600; flex-shrink: 0;">Smazat</button>
+            `;
+            listContainer.appendChild(div);
+        });
     }
 
-    function deleteItem(index) {
+    function deleteCatalogItem(index) {
+        if (!confirm("Opravdu chcete tuto položku smazat z katalogu?")) return;
         let catalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
         catalog.splice(index, 1);
         localStorage.setItem('rental_catalog', JSON.stringify(catalog));
-        renderCatalog();
+        loadCatalog();
     }
 
-    window.onload = function() { 
-        renderOrders(); 
-        renderCatalog(); 
-    };
+    function clearCatalog() {
+        if (!confirm("Opravdu chcete smazat celý katalog?")) return;
+        localStorage.removeItem('rental_catalog');
+        loadCatalog();
+    }
 </script>
 </body>
 </html>
