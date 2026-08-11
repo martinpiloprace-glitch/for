@@ -12,8 +12,8 @@
             --text-main: #0f172a;
             --border-color: #cbd5e1;
         }
-        body { font-family: system-ui, sans-serif; background: var(--bg-gradient); padding: 40px 20px; color: var(--text-main); margin: 0; min-height: 100vh; box-sizing: border-box; }
-        .container { max-width: 800px; margin: 0 auto; }
+        body { font-family: system-ui, sans-serif; background: var(--bg-gradient); padding: 40px 20px 0 20px; color: var(--text-main); margin: 0; min-height: 100vh; box-sizing: border-box; display: flex; flex-direction: column; }
+        .container { max-width: 800px; margin: 0 auto; flex: 1; width: 100%; box-sizing: border-box; }
         .section-box { background: var(--card-bg); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
         h1, h2 { margin-top: 0; }
         
@@ -23,17 +23,26 @@
         
         .selection-preview-wrapper { display: flex; gap: 20px; align-items: center; margin-bottom: 15px; }
         .selection-preview-wrapper select { margin-bottom: 0; flex-grow: 1; }
-        .live-preview-box { width: 120px; height: 80px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        
+        .preview-container-wrapper { display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+        .live-preview-box { width: 120px; height: 80px; border: 1px solid var(--border-color); border-radius: 8px; background: #f8fafc; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; transition: transform 0.2s; }
+        .live-preview-box:hover { transform: scale(1.03); border-color: var(--primary); }
         .live-preview-box img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-hint { font-size: 11px; color: #64748b; margin-top: 4px; text-align: center; }
+
+        /* Modální okno (lightbox) s detaily */
+        #lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 1000; align-items: center; justify-content: center; cursor: pointer; }
+        .lightbox-content { background: white; padding: 20px; border-radius: 12px; max-width: 500px; width: 90%; text-align: center; cursor: default; box-shadow: 0 10px 25px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+        .lightbox-content img { max-width: 100%; max-height: 300px; border-radius: 8px; object-fit: contain; margin-bottom: 15px; }
+        
+        .lightbox-info { text-align: left; margin-bottom: 15px; background: #f8fafc; padding: 12px; border-radius: 6px; border: 1px solid #e2e8f0; font-size: 14px; }
+        .lightbox-info p { margin: 4px 0; color: #334155; }
+        .lightbox-desc { font-size: 14px; color: #475569; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; white-space: pre-line; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div style="text-align: right; margin-bottom: 20px;">
-        <a href="admin.html" style="color: white; text-decoration: none; font-weight: bold;">Přejít do administrace →</a>
-    </div>
-
     <div class="section-box">
         <h2>Vytvořit rezervaci</h2>
         <form id="reservationForm" onsubmit="submitReservation(event)">
@@ -43,19 +52,22 @@
                 <select id="selectedItem" required onchange="updatePreviewImage()">
                     <option value="">-- Vyberte vybavení --</option>
                 </select>
-                <div class="live-preview-box" id="previewContainer">
-                    <span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>
+                <div class="preview-container-wrapper">
+                    <div class="live-preview-box" id="previewContainer" onclick="openLightbox()" title="Kliknutím zvětšíte">
+                        <span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>
+                    </div>
+                    <span class="preview-hint">Kliknutím zvětšit</span>
                 </div>
             </div>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div>
                     <span class="field-label">Datum od</span>
-                    <input type="date" id="dateFrom" required>
+                    <input type="date" id="dateFrom" style="padding: 8px 12px;" required>
                 </div>
                 <div>
                     <span class="field-label">Datum do</span>
-                    <input type="date" id="dateTo" required>
+                    <input type="date" id="dateTo" style="padding: 8px 12px;" required>
                 </div>
             </div>
 
@@ -73,14 +85,56 @@
     </div>
 </div>
 
+<!-- PATIČKA S PRÁVNÍMI INFORMACEMI A ODKAZEM DO ADMINISTRACE -->
+<footer style="background: #0f172a; color: #94a3b8; padding: 40px 20px; font-family: system-ui, sans-serif; border-top: 1px solid #1e293b; width: 100%; box-sizing: border-box;">
+    <div style="max-width: 800px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; font-size: 14px; line-height: 1.6;">
+        
+        <div>
+            <h3 style="color: #ffffff; font-size: 16px; margin-top: 0; margin-bottom: 12px;">Právní informace</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 8px;"><a href="obchodni-podminky.html" style="color: #60a5fa; text-decoration: none;">Obchodní podmínky (VOP)</a></li>
+                <li style="margin-bottom: 8px;"><a href="gdpr.html" style="color: #60a5fa; text-decoration: none;">Ochrana osobních údajů (GDPR)</a></li>
+                <li style="margin-bottom: 8px;"><a href="admin.html" style="color: #60a5fa; text-decoration: none; font-weight: bold;">Přejít do administrace →</a></li>
+                <li style="margin-bottom: 0; font-size: 13px; color: #64748b;">Veškeré rezervace jsou nezávazné do doby vzájemného potvrzení.</li>
+            </ul>
+        </div>
+
+        <div>
+            <h3 style="color: #ffffff; font-size: 16px; margin-top: 0; margin-bottom: 12px;">Provozovatel</h3>
+            <p style="margin: 0 0 6px 0;"><strong>Název / Jméno:</strong> Vaše Firma s.r.o.</p>
+            <p style="margin: 0 0 6px 0;"><strong>IČO:</strong> 12345678 | <strong>DIČ:</strong> CZ12345678</p>
+            <p style="margin: 0 0 6px 0;"><strong>E-mail:</strong> <a href="mailto:info@vase-pujcovna.cz" style="color: #60a5fa; text-decoration: none;">info@vase-pujcovna.cz</a></p>
+            <p style="margin: 0;"><strong>Telefon:</strong> <a href="tel:+420123456789" style="color: #60a5fa; text-decoration: none;">+420 123 456 789</a></p>
+        </div>
+
+    </div>
+
+    <div style="max-width: 800px; margin: 30px auto 0 auto; padding-top: 20px; border-top: 1px solid #1e293b; text-align: center; font-size: 13px; color: #64748b;">
+        <p style="margin: 0;">&copy; 2026 Vaše Firma s.r.o. Všechna práva vyhrazena.</p>
+    </div>
+</footer>
+
+<!-- Lightbox pro zobrazení velké fotky a detailů -->
+<div id="lightbox" onclick="closeLightbox()">
+    <div class="lightbox-content" onclick="event.stopPropagation()">
+        <img id="lightboxImg" src="" alt="Zvětšený náhled">
+        <div class="lightbox-info">
+            <p><strong>Cena:</strong> <span id="lightboxPrice">-</span></p>
+            <p><strong>Záloha:</strong> <span id="lightboxDeposit">-</span></p>
+            <div id="lightboxDesc" class="lightbox-desc"></div>
+        </div>
+        <button type="button" onclick="closeLightbox()" style="width: auto; padding: 8px 20px;">Zavřít</button>
+    </div>
+</div>
+
 <script>
     let currentCatalog = [];
+    let currentItemData = null;
 
     function loadPublicData() {
         const selectDropdown = document.getElementById('selectedItem');
         currentCatalog = JSON.parse(localStorage.getItem('rental_catalog')) || [];
 
-        // Vyčištění a nastavení základní možnosti
         selectDropdown.innerHTML = '';
         const defaultOpt = document.createElement('option');
         defaultOpt.value = '';
@@ -92,14 +146,12 @@
             return;
         }
 
-        // Přímé vkládání položek do roletky
         currentCatalog.forEach((item, index) => {
             const itemName = item.name || item.itemName || item.nazev || ('Položka ' + (index + 1));
-            const itemPrice = item.price || item.cena || '';
             
             const opt = document.createElement('option');
             opt.value = index;
-            opt.textContent = itemName + (itemPrice ? ' (' + itemPrice + ')' : '');
+            opt.textContent = itemName; // V roletce je čistě jen název
             selectDropdown.appendChild(opt);
         });
     }
@@ -109,18 +161,37 @@
         const previewContainer = document.getElementById('previewContainer');
 
         if (selectedIndex === "") {
+            currentItemData = null;
             previewContainer.innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>';
             return;
         }
 
-        const chosenItem = currentCatalog[selectedIndex];
-        const img = chosenItem ? (chosenItem.image || chosenItem.fotka || '') : '';
+        currentItemData = currentCatalog[selectedIndex];
+        const imgSrc = currentItemData ? (currentItemData.image || currentItemData.fotka || '') : '';
 
-        if (img) {
-            previewContainer.innerHTML = `<img src="${img}" alt="Náhled">`;
+        if (imgSrc) {
+            previewContainer.innerHTML = `<img src="${imgSrc}" alt="Náhled">`;
         } else {
             previewContainer.innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center;">Bez foto</span>';
         }
+    }
+
+    function openLightbox() {
+        if (!currentItemData) return;
+        
+        const imgSrc = currentItemData.image || currentItemData.fotka || '';
+        if (!imgSrc) return;
+
+        document.getElementById('lightboxImg').src = imgSrc;
+        document.getElementById('lightboxPrice').textContent = currentItemData.price || currentItemData.cena || 'Neuvedena';
+        document.getElementById('lightboxDeposit').textContent = currentItemData.deposit || currentItemData.zaloha || 'Neuvedena';
+        document.getElementById('lightboxDesc').textContent = currentItemData.desc || currentItemData.popis || 'Bez popisu';
+        
+        document.getElementById('lightbox').style.display = 'flex';
+    }
+
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
     }
 
     function submitReservation(event) {
@@ -154,6 +225,7 @@
         alert("Rezervace byla úspěšně odeslána do administrace!");
         document.getElementById('reservationForm').reset();
         document.getElementById('previewContainer').innerHTML = '<span style="color: #64748b; font-size: 11px; text-align: center; padding: 5px;">Náhled foto</span>';
+        currentItemData = null;
     }
 
     document.addEventListener('DOMContentLoaded', loadPublicData);
